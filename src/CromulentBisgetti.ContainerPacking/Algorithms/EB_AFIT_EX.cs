@@ -8,9 +8,9 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 	/// A 3D bin packing algorithm originally ported from https://github.com/keremdemirer/3dbinpackingjs,
 	/// which itself was a JavaScript port of https://github.com/wknechtel/3d-bin-pack/, which is a C reconstruction 
 	/// of a novel algorithm developed in a U.S. Air Force master's thesis by Erhan Baltacioglu in 2001.
-	/// Only horizontal rotation
+	/// With extra conditions like no vertical rotation, etc.
 	/// </summary>
-	public class EB_AFIT_OHR : IPackingAlgorithm {
+	public class EB_AFIT_EX : IPackingAlgorithm {
 		#region Public Methods
 
 		/// <summary>
@@ -25,8 +25,8 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			Report(container);
 
 			AlgorithmPackingResult result = new AlgorithmPackingResult();
-			result.AlgorithmID = (int) AlgorithmType.EB_AFIT_OHR;
-			result.AlgorithmName = "EB-AFIT-OHR";
+			result.AlgorithmID = (int) AlgorithmType.EB_AFIT_EX;
+			result.AlgorithmName = "EB-AFIT-EX";
 
 			for (int i = 1; i <= itemsToPackCount; i++) {
 				itemsToPack[i].Quantity = 1;
@@ -247,10 +247,16 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 				(containerOrientationVariant <= 6) && !quit; containerOrientationVariant++) {
 				switch (containerOrientationVariant) {
 					case 1:
-						continue;
+						px = container.Length;
+						py = container.Height;
+						pz = container.Width;
+						break;
 
 					case 2:
-						continue;
+						px = container.Width;
+						py = container.Height;
+						pz = container.Length;
+						break;
 
 					case 3:
 						px = container.Width;
@@ -259,7 +265,10 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 						break;
 
 					case 4:
-						continue;
+						px = container.Height;
+						py = container.Length;
+						pz = container.Width;
+						break;
 
 					case 5:
 						px = container.Length;
@@ -268,7 +277,10 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 						break;
 
 					case 6:
-						continue;
+						px = container.Height;
+						py = container.Width;
+						pz = container.Length;
+						break;
 				}
 
 				layers.Add(new Layer { LayerEval = -1 });
@@ -329,7 +341,7 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 
 				if (hundredPercentPacked) break;
 
-				if ((container.Length == container.Height) && (container.Height == container.Width)) containerOrientationVariant = 5;
+				if ((container.Length == container.Height) && (container.Height == container.Width)) containerOrientationVariant = 6;
 
 				layers = new List<Layer>();
 			}
@@ -363,7 +375,11 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 
 				if ((itemsToPack[x].Dim1 == itemsToPack[x].Dim3) && (itemsToPack[x].Dim3 == itemsToPack[x].Dim2)) continue;
 
+				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim1, itemsToPack[x].Dim3, itemsToPack[x].Dim2);
 				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim2, itemsToPack[x].Dim1, itemsToPack[x].Dim3);
+				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim2, itemsToPack[x].Dim3, itemsToPack[x].Dim1);
+				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim3, itemsToPack[x].Dim1, itemsToPack[x].Dim2);
+				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim3, itemsToPack[x].Dim2, itemsToPack[x].Dim1);
 			}
 		}
 
@@ -385,12 +401,24 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			for (x = 1; x <= itemsToPackCount; x++) {
 				if (itemsToPack[x].IsPacked) continue;
 
-				for (y = 1; y <= 1; y++) {
+				for (y = 1; y <= 3; y++) {
 					switch (y) {
 						case 1:
 							exdim = itemsToPack[x].Dim1;
 							dimen2 = itemsToPack[x].Dim2;
 							dimen3 = itemsToPack[x].Dim3;
+							break;
+
+						case 2:
+							exdim = itemsToPack[x].Dim2;
+							dimen2 = itemsToPack[x].Dim1;
+							dimen3 = itemsToPack[x].Dim3;
+							break;
+
+						case 3:
+							exdim = itemsToPack[x].Dim3;
+							dimen2 = itemsToPack[x].Dim1;
+							dimen3 = itemsToPack[x].Dim2;
 							break;
 					}
 
@@ -457,7 +485,7 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 
 			foreach (Item item in items) {
 				for (int i = 1; i <= item.Quantity; i++) {
-					Item newItem = new Item(item.ID, item.Dim1, item.Dim2, item.Dim3, item.Quantity);
+					Item newItem = new Item(item.ID, item.Dim1, item.Dim2, item.Dim3, item.Quantity, item.NoVerticalRotation);
 					itemsToPack.Add(newItem);
 				}
 
@@ -499,12 +527,24 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			layerListLen = 0;
 
 			for (x = 1; x <= itemsToPackCount; x++) {
-				for (y = 1; y <= 1; y++) {
+				for (y = 1; y <= 3; y++) {
 					switch (y) {
 						case 1:
 							exdim = itemsToPack[x].Dim1;
 							dimen2 = itemsToPack[x].Dim2;
 							dimen3 = itemsToPack[x].Dim3;
+							break;
+
+						case 2:
+							exdim = itemsToPack[x].Dim2;
+							dimen2 = itemsToPack[x].Dim1;
+							dimen3 = itemsToPack[x].Dim3;
+							break;
+
+						case 3:
+							exdim = itemsToPack[x].Dim3;
+							dimen2 = itemsToPack[x].Dim1;
+							dimen3 = itemsToPack[x].Dim2;
 							break;
 					}
 

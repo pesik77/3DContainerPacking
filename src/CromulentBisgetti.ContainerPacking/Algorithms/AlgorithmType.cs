@@ -14,9 +14,9 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 		[DataMember]
 		EB_AFIT = 1,
 		/// <summary>
-		/// The EB-AFIT-OHR packing algorithm type with only horizontal rotation.
+		/// The EB-AFIT-EX packing algorithm type with extra conditions.
 		/// </summary>
 		[DataMember]
-		EB_AFIT_OHR = 2
+		EB_AFIT_EX = 2
 	}
 }

@@ -76,8 +76,8 @@ namespace CromulentBisgetti.ContainerPacking {
 			switch (algorithmTypeID) {
 				case (int) AlgorithmType.EB_AFIT:
 					return new EB_AFIT();
-				case (int) AlgorithmType.EB_AFIT_OHR:
-					return new EB_AFIT_OHR();
+				case (int) AlgorithmType.EB_AFIT_EX:
+					return new EB_AFIT_EX();
 
 				default:
 					throw new Exception("Invalid algorithm type.");
