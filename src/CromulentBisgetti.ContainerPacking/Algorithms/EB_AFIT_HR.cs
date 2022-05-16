@@ -8,9 +8,9 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 	/// A 3D bin packing algorithm originally ported from https://github.com/keremdemirer/3dbinpackingjs,
 	/// which itself was a JavaScript port of https://github.com/wknechtel/3d-bin-pack/, which is a C reconstruction 
 	/// of a novel algorithm developed in a U.S. Air Force master's thesis by Erhan Baltacioglu in 2001.
-	/// With extra conditions like no vertical rotation, etc.
+	/// With only horizontal rotation of items
 	/// </summary>
-	public class EB_AFIT_EX : IPackingAlgorithm {
+	public class EB_AFIT_HR : IPackingAlgorithm {
 		#region Public Methods
 
 		/// <summary>
@@ -25,8 +25,8 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			Report(container);
 
 			AlgorithmPackingResult result = new AlgorithmPackingResult();
-			result.AlgorithmID = (int) AlgorithmType.EB_AFIT_EX;
-			result.AlgorithmName = "EB-AFIT-EX";
+			result.AlgorithmID = (int) AlgorithmType.EB_AFIT_HR;
+			result.AlgorithmName = "EB-AFIT-HR";
 
 			for (int i = 1; i <= itemsToPackCount; i++) {
 				itemsToPack[i].Quantity = 1;
@@ -244,7 +244,7 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			decimal bestVolume = 0.0M;
 
 			for (int containerOrientationVariant = 1;
-				(containerOrientationVariant <= 6) && !quit; containerOrientationVariant++) {
+				(containerOrientationVariant <= 2) && !quit; containerOrientationVariant++) {
 				switch (containerOrientationVariant) {
 					case 1:
 						px = container.Length;
@@ -255,30 +255,6 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 					case 2:
 						px = container.Width;
 						py = container.Height;
-						pz = container.Length;
-						break;
-
-					case 3:
-						px = container.Width;
-						py = container.Length;
-						pz = container.Height;
-						break;
-
-					case 4:
-						px = container.Height;
-						py = container.Length;
-						pz = container.Width;
-						break;
-
-					case 5:
-						px = container.Length;
-						py = container.Width;
-						pz = container.Height;
-						break;
-
-					case 6:
-						px = container.Height;
-						py = container.Width;
 						pz = container.Length;
 						break;
 				}
@@ -341,7 +317,7 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 
 				if (hundredPercentPacked) break;
 
-				if ((container.Length == container.Height) && (container.Height == container.Width)) containerOrientationVariant = 6;
+				if ((container.Length == container.Height) && (container.Height == container.Width)) containerOrientationVariant = 2;
 
 				layers = new List<Layer>();
 			}
@@ -375,10 +351,6 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 
 				if ((itemsToPack[x].Dim1 == itemsToPack[x].Dim3) && (itemsToPack[x].Dim3 == itemsToPack[x].Dim2)) continue;
 
-				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim1, itemsToPack[x].Dim3, itemsToPack[x].Dim2);
-				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim2, itemsToPack[x].Dim1, itemsToPack[x].Dim3);
-				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim2, itemsToPack[x].Dim3, itemsToPack[x].Dim1);
-				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim3, itemsToPack[x].Dim1, itemsToPack[x].Dim2);
 				AnalyzeBox(hmx, hy, hmy, hz, hmz, itemsToPack[x].Dim3, itemsToPack[x].Dim2, itemsToPack[x].Dim1);
 			}
 		}
@@ -391,7 +363,6 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			decimal dimdif;
 			decimal dimen2 = 0;
 			decimal dimen3 = 0;
-			int y;
 			int z;
 			decimal layereval;
 			decimal eval;
@@ -401,50 +372,21 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			for (x = 1; x <= itemsToPackCount; x++) {
 				if (itemsToPack[x].IsPacked) continue;
 
-				for (y = 1; y <= 3; y++) {
-					switch (y) {
-						case 1:
-							exdim = itemsToPack[x].Dim1;
-							dimen2 = itemsToPack[x].Dim2;
-							dimen3 = itemsToPack[x].Dim3;
-							break;
-
-						case 2:
-							exdim = itemsToPack[x].Dim2;
-							dimen2 = itemsToPack[x].Dim1;
-							dimen3 = itemsToPack[x].Dim3;
-							break;
-
-						case 3:
-							exdim = itemsToPack[x].Dim3;
-							dimen2 = itemsToPack[x].Dim1;
-							dimen3 = itemsToPack[x].Dim2;
-							break;
+				exdim = itemsToPack[x].Dim2;
+				dimen2 = itemsToPack[x].Dim1;
+				dimen3 = itemsToPack[x].Dim3;;
+				layereval = 0;
+				if ((exdim <= thickness) && (((dimen2 <= px) && (dimen3 <= pz)) || ((dimen3 <= px) && (dimen2 <= pz)))) {
+					for (z = 1; z <= itemsToPackCount; z++) {
+						if (!(x == z) && !(itemsToPack[z].IsPacked)) {
+							dimdif = Math.Abs(exdim - itemsToPack[z].Dim2);
+							layereval = layereval + dimdif;
+						}
 					}
 
-					layereval = 0;
-
-					if ((exdim <= thickness) && (((dimen2 <= px) && (dimen3 <= pz)) || ((dimen3 <= px) && (dimen2 <= pz)))) {
-						for (z = 1; z <= itemsToPackCount; z++) {
-							if (!(x == z) && !(itemsToPack[z].IsPacked)) {
-								dimdif = Math.Abs(exdim - itemsToPack[z].Dim1);
-
-								if (Math.Abs(exdim - itemsToPack[z].Dim2) < dimdif) {
-									dimdif = Math.Abs(exdim - itemsToPack[z].Dim2);
-								}
-
-								if (Math.Abs(exdim - itemsToPack[z].Dim3) < dimdif) {
-									dimdif = Math.Abs(exdim - itemsToPack[z].Dim3);
-								}
-
-								layereval = layereval + dimdif;
-							}
-						}
-
-						if (layereval < eval) {
-							eval = layereval;
-							layerThickness = exdim;
-						}
+					if (layereval < eval) {
+						eval = layereval;
+						layerThickness = exdim;
 					}
 				}
 			}
@@ -485,7 +427,7 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 
 			foreach (Item item in items) {
 				for (int i = 1; i <= item.Quantity; i++) {
-					Item newItem = new Item(item.ID, item.Dim1, item.Dim2, item.Dim3, item.Quantity, item.NoVerticalRotation);
+					Item newItem = new Item(item.ID, item.Dim1, item.Dim2, item.Dim3, item.Quantity);
 					itemsToPack.Add(newItem);
 				}
 
@@ -519,7 +461,6 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			decimal dimdif;
 			decimal dimen2 = 0;
 			decimal dimen3 = 0;
-			int y;
 			int z;
 			int k;
 			decimal layereval;
@@ -527,62 +468,38 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 			layerListLen = 0;
 
 			for (x = 1; x <= itemsToPackCount; x++) {
-				for (y = 1; y <= 3; y++) {
-					switch (y) {
-						case 1:
-							exdim = itemsToPack[x].Dim1;
-							dimen2 = itemsToPack[x].Dim2;
-							dimen3 = itemsToPack[x].Dim3;
-							break;
 
-						case 2:
-							exdim = itemsToPack[x].Dim2;
-							dimen2 = itemsToPack[x].Dim1;
-							dimen3 = itemsToPack[x].Dim3;
-							break;
+				exdim = itemsToPack[x].Dim2;
+				dimen2 = itemsToPack[x].Dim1;
+				dimen3 = itemsToPack[x].Dim3;
 
-						case 3:
-							exdim = itemsToPack[x].Dim3;
-							dimen2 = itemsToPack[x].Dim1;
-							dimen3 = itemsToPack[x].Dim2;
-							break;
+				if ((exdim > py) || (((dimen2 > px) || (dimen3 > pz)) && ((dimen3 > px) || (dimen2 > pz)))) continue;
+
+				same = false;
+
+				for (k = 1; k <= layerListLen; k++) {
+					if (exdim == layers[k].LayerDim) {
+						same = true;
+						continue;
 					}
-
-					if ((exdim > py) || (((dimen2 > px) || (dimen3 > pz)) && ((dimen3 > px) || (dimen2 > pz)))) continue;
-
-					same = false;
-
-					for (k = 1; k <= layerListLen; k++) {
-						if (exdim == layers[k].LayerDim) {
-							same = true;
-							continue;
-						}
-					}
-
-					if (same) continue;
-
-					layereval = 0;
-
-					for (z = 1; z <= itemsToPackCount; z++) {
-						if (!(x == z)) {
-							dimdif = Math.Abs(exdim - itemsToPack[z].Dim1);
-
-							if (Math.Abs(exdim - itemsToPack[z].Dim2) < dimdif) {
-								dimdif = Math.Abs(exdim - itemsToPack[z].Dim2);
-							}
-							if (Math.Abs(exdim - itemsToPack[z].Dim3) < dimdif) {
-								dimdif = Math.Abs(exdim - itemsToPack[z].Dim3);
-							}
-							layereval = layereval + dimdif;
-						}
-					}
-
-					layerListLen++;
-
-					layers.Add(new Layer());
-					layers[layerListLen].LayerEval = layereval;
-					layers[layerListLen].LayerDim = exdim;
 				}
+
+				if (same) continue;
+
+				layereval = 0;
+
+				for (z = 1; z <= itemsToPackCount; z++) {
+					if (!(x == z)) {
+						dimdif = Math.Abs(exdim - itemsToPack[z].Dim2);
+						layereval = layereval + dimdif;
+					}
+				}
+
+				layerListLen++;
+
+				layers.Add(new Layer());
+				layers[layerListLen].LayerEval = layereval;
+				layers[layerListLen].LayerDim = exdim;
 			}
 		}
 
@@ -615,42 +532,6 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 					packDimX = itemsToPack[cboxi].PackDimZ;
 					packDimY = itemsToPack[cboxi].PackDimY;
 					packDimZ = itemsToPack[cboxi].PackDimX;
-					break;
-
-				case 3:
-					packCoordX = itemsToPack[cboxi].CoordY;
-					packCoordY = itemsToPack[cboxi].CoordZ;
-					packCoordZ = itemsToPack[cboxi].CoordX;
-					packDimX = itemsToPack[cboxi].PackDimY;
-					packDimY = itemsToPack[cboxi].PackDimZ;
-					packDimZ = itemsToPack[cboxi].PackDimX;
-					break;
-
-				case 4:
-					packCoordX = itemsToPack[cboxi].CoordY;
-					packCoordY = itemsToPack[cboxi].CoordX;
-					packCoordZ = itemsToPack[cboxi].CoordZ;
-					packDimX = itemsToPack[cboxi].PackDimY;
-					packDimY = itemsToPack[cboxi].PackDimX;
-					packDimZ = itemsToPack[cboxi].PackDimZ;
-					break;
-
-				case 5:
-					packCoordX = itemsToPack[cboxi].CoordX;
-					packCoordY = itemsToPack[cboxi].CoordZ;
-					packCoordZ = itemsToPack[cboxi].CoordY;
-					packDimX = itemsToPack[cboxi].PackDimX;
-					packDimY = itemsToPack[cboxi].PackDimZ;
-					packDimZ = itemsToPack[cboxi].PackDimY;
-					break;
-
-				case 6:
-					packCoordX = itemsToPack[cboxi].CoordZ;
-					packCoordY = itemsToPack[cboxi].CoordX;
-					packCoordZ = itemsToPack[cboxi].CoordY;
-					packDimX = itemsToPack[cboxi].PackDimZ;
-					packDimY = itemsToPack[cboxi].PackDimX;
-					packDimZ = itemsToPack[cboxi].PackDimY;
 					break;
 			}
 
@@ -916,30 +797,6 @@ namespace CromulentBisgetti.ContainerPacking.Algorithms {
 				case 2:
 					px = container.Width;
 					py = container.Height;
-					pz = container.Length;
-					break;
-
-				case 3:
-					px = container.Width;
-					py = container.Length;
-					pz = container.Height;
-					break;
-
-				case 4:
-					px = container.Height;
-					py = container.Length;
-					pz = container.Width;
-					break;
-
-				case 5:
-					px = container.Length;
-					py = container.Width;
-					pz = container.Height;
-					break;
-
-				case 6:
-					px = container.Height;
-					py = container.Width;
 					pz = container.Length;
 					break;
 			}
