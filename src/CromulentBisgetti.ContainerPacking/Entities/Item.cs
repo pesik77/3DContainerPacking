@@ -1,13 +1,11 @@
 ﻿using System.Runtime.Serialization;
 
-namespace CromulentBisgetti.ContainerPacking.Entities
-{
-    /// <summary>
-    /// An item to be packed. Also used to hold post-packing details for the item.
-    /// </summary>
-    [DataContract]
-	public class Item
-	{
+namespace CromulentBisgetti.ContainerPacking.Entities {
+	/// <summary>
+	/// An item to be packed. Also used to hold post-packing details for the item.
+	/// </summary>
+	[DataContract]
+	public class Item {
 		#region Private Variables
 
 		private decimal volume;
@@ -24,8 +22,7 @@ namespace CromulentBisgetti.ContainerPacking.Entities
 		/// <param name="dim2">The length of another of the three item dimensions.</param>
 		/// <param name="dim3">The length of the other of the three item dimensions.</param>
 		/// <param name="quantity">The item quantity.</param>
-		public Item(int id, decimal dim1, decimal dim2, decimal dim3, int quantity)
-		{
+		public Item(int id, decimal dim1, decimal dim2, decimal dim3, int quantity) {
 			this.ID = id;
 			this.Dim1 = dim1;
 			this.Dim2 = dim2;
@@ -152,10 +149,8 @@ namespace CromulentBisgetti.ContainerPacking.Entities
 		/// The item volume.
 		/// </value>
 		[DataMember]
-		public decimal Volume 
-		{
-			get
-			{
+		public decimal Volume {
+			get {
 				return volume;
 			}
 		}
