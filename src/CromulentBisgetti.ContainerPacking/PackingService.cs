@@ -34,7 +34,7 @@ namespace CromulentBisgetti.ContainerPacking {
 					List<Item> items = new List<Item>();
 
 					itemsToPack.ForEach(item => {
-						items.Add(new Item(item.ID, item.Dim1, item.Dim3, item.Dim2, item.Quantity));
+						items.Add(new Item(item.ID, item.Dim1, item.Dim2, item.Dim3, item.Quantity));
 					});
 
 					Stopwatch stopwatch = new Stopwatch();

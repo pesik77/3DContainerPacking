@@ -158,8 +158,8 @@ var ViewModel = function () {
 			var itemToPack = {
 				ID: item.ID(),
 				Dim1: item.Length(),
-				Dim2: item.Width(),
-				Dim3: item.Height(),
+				Dim2: item.Height(),
+				Dim3: item.Width(),
 				Quantity: item.Quantity()
 			};
 			
